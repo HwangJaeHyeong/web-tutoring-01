@@ -14,6 +14,8 @@ const FilterSearch = () => {
     const [filterData,setFilterData] =useState([]);
     const [wordEntered,setWordEntered]=useState("");
     const [submitted,setSubmitted]=useState(false); 
+    const [selectedItem, setSelectedItem]=useState("");
+    const [isItemSelected,setIsItemSelected]=useState(false);
     const navigate=useNavigate();
 
     const move = () =>{
@@ -35,6 +37,8 @@ const FilterSearch = () => {
     const handleFilter = (e) =>{
         const searchWord=e.target.value;
         setWordEntered(searchWord);
+        setIsItemSelected(false);
+        
 
         const newFilter = data.filter((value)=>{
             return value.toLowerCase().includes(searchWord.toLowerCase());
@@ -83,19 +87,25 @@ const FilterSearch = () => {
             <SearchInput>
                 <form id='search-form' className='form' onSubmit={handleSubmit}>
                   <input type="text" placeholder="검색어 입력" onChange={handleFilter} value={wordEntered}/>
-                  <button type='submit' form='search-from'>검색</button>
+                  <button type='submit' form='search-form'>검색</button>
                 </form>
                 
               </SearchInput>
               
              
             {
-                filterData.length!==0 && (
+                !isItemSelected && filterData.length!==0 && (
                     <DataResult>
                         {filterData.slice(0,15).map((searchTerms,key)=>{
                             return(
-                                <a key={key} className='dataItem' target='_blank'>
-                                    <p>{searchTerms}</p>
+                                <a key={key} className={`dataItem ${searchTerms === selectedItem ? 'active' : ''}`} 
+                                onClick={() => {
+                                  setSelectedItem(searchTerms);
+                                  setWordEntered(searchTerms);
+                                  setIsItemSelected(true);
+                                }
+                                } target='_blank'>
+                                <p>{searchTerms}</p>
                                 </a>
                             )
                         })}
