@@ -1,130 +1,123 @@
-import React from 'react';
-import { useState,useEffect } from 'react'
-import axios from "axios";
-import styled from 'styled-components';
-import cheerio from 'cheerio'
+import { useState, useEffect } from "react";
+import styled from "styled-components";
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-//data 입력을 지우고 localstorage에 있는 값들을 불러오는 형식 
+//data 입력을 지우고 localstorage에 있는 값들을 불러오는 형식
 const FilterSearch = () => {
-  
-  
-    const [data,setData]=useState([]);
-    const [filterData,setFilterData] =useState([]);
-    const [wordEntered,setWordEntered]=useState("");
-    const [submitted,setSubmitted]=useState(false); 
-    const [selectedItem, setSelectedItem]=useState("");
-    const [isItemSelected,setIsItemSelected]=useState(false);
-    const navigate=useNavigate();
+  const [data, setData] = useState([]);
+  const [filterData, setFilterData] = useState([]);
+  const [wordEntered, setWordEntered] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [selectedItem, setSelectedItem] = useState("");
+  const [isItemSelected, setIsItemSelected] = useState(false);
+  const navigate = useNavigate();
 
-    const move = () =>{
-      navigate('/result',{state:{
-        result:wordEntered}})
+  const move = () => {
+    navigate(`/result/${wordEntered}`, {
+      state: {
+        result: wordEntered,
+      },
+    });
+  };
+
+  // useEffect -> 처음 렌더링 후에 localStorage에 있는거 getItem 할 수 있도록
+  useEffect(() => {
+    const savedData = localStorage.getItem("searchList");
+    if (savedData) {
+      setData(JSON.parse(savedData).result); //
     }
-    
+  }, []);
 
-    // useEffect -> 처음 렌더링 후에 localStorage에 있는거 getItem 할 수 있도록
-    useEffect(()=>{
-      const savedData=localStorage.getItem('searchList');
-      if(savedData){
-        setData(JSON.parse(savedData).result); //
+  const handleFilter = (e) => {
+    const searchWord = e.target.value;
+    setWordEntered(searchWord);
+    setIsItemSelected(false);
+
+    const newFilter = data.filter((value) => {
+      return value.toLowerCase().includes(searchWord.toLowerCase());
+    });
+
+    if (searchWord === "") {
+      setFilterData([]);
+    } else {
+      setFilterData(newFilter);
+    }
+  };
+
+  const clearInput = () => {
+    setFilterData([]);
+    setWordEntered("");
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+  };
+  useEffect(() => {
+    if (submitted) {
+      //console.log(wordEntered);
+      const isWordEnteredExists = data.includes(wordEntered);
+
+      if (!isWordEnteredExists) {
+        const newData = [...data, wordEntered];
+        setData(newData);
+        localStorage.setItem("searchList", JSON.stringify({ result: newData }));
       }
-      
-      
-    },[]);
 
-    const handleFilter = (e) =>{
-        const searchWord=e.target.value;
-        setWordEntered(searchWord);
-        setIsItemSelected(false);
-        
+      handleFilter({ target: { value: wordEntered } });
 
-        const newFilter = data.filter((value)=>{
-            return value.toLowerCase().includes(searchWord.toLowerCase());
-        })
+      setSubmitted(false);
 
-        if(searchWord === ""){
-            setFilterData([]);
-        }else{
-            setFilterData(newFilter);
-        }
+      move();
     }
+  }, [submitted, data, wordEntered]);
 
-    const clearInput = () =>{
-        setFilterData([]);
-        setWordEntered("");
-    }
+  return (
+    <>
+      <Search>
+        <SearchInput>
+          <form id="search-form" className="form" onSubmit={handleSubmit}>
+            <input
+              type="text"
+              placeholder="검색어 입력"
+              onChange={handleFilter}
+              value={wordEntered}
+            />
+            <button type="submit" form="search-form">
+              검색
+            </button>
+          </form>
+        </SearchInput>
 
-    const handleSubmit = (e)=>{
-      e.preventDefault();
-      setSubmitted(true);
-      
+        {!isItemSelected && filterData.length !== 0 && (
+          <DataResult>
+            {filterData.slice(0, 15).map((searchTerms, key) => {
+              return (
+                <a
+                  key={key}
+                  className={`dataItem ${
+                    searchTerms === selectedItem ? "active" : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedItem(searchTerms);
+                    setWordEntered(searchTerms);
+                    setIsItemSelected(true);
+                  }}
+                  target="_blank"
+                >
+                  <p>{searchTerms}</p>
+                </a>
+              );
+            })}
+          </DataResult>
+        )}
+      </Search>
+    </>
+  );
+};
 
-     
-    }
-    useEffect(()=>{
-      if(submitted){
-        //console.log(wordEntered);
-        const isWordEnteredExists=data.includes(wordEntered);
-
-        if(!isWordEnteredExists){
-          const newData=[...data,wordEntered];
-          setData(newData);
-          localStorage.setItem("searchList",JSON.stringify({result:newData}));
-        }
-        
-        handleFilter({target:{value:wordEntered}})
-        
-        setSubmitted(false);
-      
-        move();
-
-    }
-    },[submitted,data,wordEntered]);
-
-    return(
-        <>
-       
-        <Search>
-            <SearchInput>
-                <form id='search-form' className='form' onSubmit={handleSubmit}>
-                  <input type="text" placeholder="검색어 입력" onChange={handleFilter} value={wordEntered}/>
-                  <button type='submit' form='search-form'>검색</button>
-                </form>
-                
-              </SearchInput>
-              
-             
-            {
-                !isItemSelected && filterData.length!==0 && (
-                    <DataResult>
-                        {filterData.slice(0,15).map((searchTerms,key)=>{
-                            return(
-                                <a key={key} className={`dataItem ${searchTerms === selectedItem ? 'active' : ''}`} 
-                                onClick={() => {
-                                  setSelectedItem(searchTerms);
-                                  setWordEntered(searchTerms);
-                                  setIsItemSelected(true);
-                                }
-                                } target='_blank'>
-                                <p>{searchTerms}</p>
-                                </a>
-                            )
-                        })}
-                    </DataResult>
-                )
-            }
-        </Search>
-        </>
-        
-    )
-    
-
-
-}
-
-export default FilterSearch
+export default FilterSearch;
 
 const Search = styled.div`
   border-radius: 10px;
@@ -145,14 +138,14 @@ const SearchInput = styled.div`
   height: 30px;
   padding: 20px;
 
-  input{
+  input {
     border: none;
   }
-  input:focus{
+  input:focus {
     outline: none;
   }
 
-  .icon{
+  .icon {
     cursor: pointer;
   }
 `;
@@ -161,13 +154,13 @@ const DataResult = styled.div`
   width: 396px;
   height: 200px;
   background-color: #fff;
-  box-shadow: rgba(0,0,0,.35) 0px 5px 15px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   overflow: hidden;
   overflow-y: auto;
   margin-top: 5px;
   border-radius: 5px;
 
-  .dataItem{
+  .dataItem {
     padding: 0 10px;
     width: 100%;
     height: 50px;
@@ -177,7 +170,7 @@ const DataResult = styled.div`
     text-decoration: none;
     cursor: pointer;
   }
-  .dataItem:hover{
+  .dataItem:hover {
     background-color: gray;
     color: #fff;
   }
