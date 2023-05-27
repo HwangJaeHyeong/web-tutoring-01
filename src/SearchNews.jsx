@@ -34,58 +34,56 @@ const SearchNews = () => {
     getData();
   }, []);
 
-  // const getHtml = async (item_link) => {
-  //   try {
-  //     const res = await axios.get(item_link);
-  //     return res.data;
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
+  const getHtml = async (item_link) => {
+    try {
+      const res = await axios.get(item_link);
+      return res.data;
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  // useEffect(() => {
-  //   console.log(response);
-  //   response.forEach((dataa) => {
-  //     getHtml(dataa.originallink)
-  //       .then((htmlData) => {
-  //         let result = "";
-  //         const $ = cheerio.load(htmlData.toString()); // html 데이터 파싱
-  //         const $contents = $("div#contents");
-  //         const $content = $("div#content");
-  //         const $pTagList = $("p");
-  //         const $article = $("article");
-  //         const data = [$pTagList, $article, $contents, $content];
+  useEffect(() => {
+    response.forEach((dataa) => {
+      console.log({dataa})
+      getHtml(dataa.link)
+        .then((htmlData) => {
+          console.log({htmlData})
+          let result = "";
+          const $ = cheerio.load(htmlData.toString()); // html 데이터 파싱
+          const $contents = $("div#contents");
+          const $content = $("div#content");
+          const $pTagList = $("p");
+          const $article = $("article");
+          const data = [$pTagList, $article, $contents, $content];
 
-  //         dataa.forEach((item) => {
-  //           if (item.length !== 0) {
-  //             // 요소가 존재하면
-  //             console.log(item.length);
+          dataa.forEach((item) => {
+            if (item.length !== 0) {
+              // 요소가 존재하면
+              console.log(item.length);
 
-  //             item.each(function (i, elem) {
-  //               // 텍스트 추출
-  //               result = result + $(this).text();
-  //             });
-  //           } else {
-  //             console.log("data 없음");
-  //           }
-  //         });
-  //         array.push(result);
-  //         setContent(array);
-  //       })
-  //       .then((res) => {
-  //         console.log(dataa.link);
-  //         console.log(res + "\n");
-  //       });
-  //   });
-  // }, [response]);
+              item.each(function (i, elem) {
+                // 텍스트 추출
+                result = result + $(this).text();
+              });
+            } else {
+              console.log("data 없음");
+            }
+          });
+          array.push(result);
+          setContent(array);
+        })
+        .then((res) => {
+          console.log(dataa.link);
+          console.log(res + "\n");
+        });
+    });
+  }, [response]);
 
   return (
     <div>
-      {/* {content.map((item) => (
-        <p key={item}>{item}</p>
-      ))} */}
       {
-        JSON.stringify(response)
+        JSON.stringify(content)
       }
     </div>
   );
