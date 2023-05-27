@@ -66,16 +66,19 @@ const FilterSearch = () => {
     useEffect(()=>{
       if(submitted){
         //console.log(wordEntered);
-        const newData=[...data,wordEntered];
+        const isWordEnteredExists=data.includes(wordEntered);
+
+        if(!isWordEnteredExists){
+          const newData=[...data,wordEntered];
+          setData(newData);
+          localStorage.setItem("searchList",JSON.stringify({result:newData}));
+        }
         
-        setData(newData);
-        console.log('submitted가 true',data);
-        localStorage.setItem("searchList",JSON.stringify({result:newData}));
         handleFilter({target:{value:wordEntered}})
         
-      setSubmitted(false);
+        setSubmitted(false);
       
-      move();
+        move();
 
     }
     },[submitted,data,wordEntered]);
